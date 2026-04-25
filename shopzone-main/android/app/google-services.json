@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "18091953984",
+    "project_id": "shopzone-c9cf5",
+    "storage_bucket": "shopzone-c9cf5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:18091953984:android:d81c1a686929b8c62d74a5",
+        "android_client_info": {
+          "package_name": "com.shopzone.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAnLbsZYbj5Yjh7nwt4lo1X0UxIzGPoss"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,16 @@
+# Make sure .env is in .gitignore
+echo "backend/.env" >> .gitignore
+
+# Nuke git history
+rmdir /s /q .git
+
+# Start fresh
+git init
+git add .
+
+# Verify .env is NOT staged
+git status
+
+node_modules/
+.env
+uploads/

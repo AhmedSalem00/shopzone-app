@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopZone Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f14;
+      --surface: #1a1a24;
+      --surface2: #22222e;
+      --border: #2a2a3a;
+      --accent: #e94560;
+      --accent-light: rgba(233,69,96,0.15);
+      --text: #f0f0f5;
+      --text2: #8a8a9a;
+      --success: #28c76f;
+      --warning: #ff9f43;
+      --info: #6366f1;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+    .layout { display: flex; height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+      padding: 24px 16px; display: flex; flex-direction: column;
+    }
+    .logo { font-size: 22px; font-weight: 700; color: var(--accent); padding: 0 8px 24px; }
+    .nav-item {
+      padding: 10px 12px; border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+      font-size: 14px; color: var(--text2); transition: all .15s;
+    }
+    .nav-item:hover, .nav-item.active { background: var(--accent-light); color: var(--accent); }
+    .nav-item svg { width: 18px; height: 18px; }
+
+    /* Main */
+    .main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+    .page-title { font-size: 24px; font-weight: 700; margin-bottom: 24px; }
+
+    /* Stats grid */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+    }
+    .stat-label { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+    .stat-value { font-size: 28px; font-weight: 700; }
+    .stat-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .stat-icon.revenue { background: var(--accent-light); color: var(--accent); }
+    .stat-icon.orders { background: rgba(99,102,241,.15); color: var(--info); }
+    .stat-icon.users { background: rgba(40,199,111,.15); color: var(--success); }
+    .stat-icon.products { background: rgba(255,159,67,.15); color: var(--warning); }
+
+    /* Table */
+    .panel {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px; margin-bottom: 24px;
+    }
+    .panel-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 12px; font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; font-size: 14px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    .badge {
+      padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase;
+    }
+    .badge.pending { background: rgba(255,159,67,.15); color: var(--warning); }
+    .badge.confirmed { background: rgba(99,102,241,.15); color: var(--info); }
+    .badge.shipped { background: rgba(139,92,246,.15); color: #8b5cf6; }
+    .badge.delivered { background: rgba(40,199,111,.15); color: var(--success); }
+    .badge.cancelled { background: var(--accent-light); color: var(--accent); }
+
+    .btn {
+      padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+      font-family: inherit; font-size: 13px; font-weight: 600; transition: all .15s;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { opacity: .85; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    select {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      padding: 6px 10px; border-radius: 6px; font-family: inherit; font-size: 13px;
+    }
+
+    .status-select { padding: 4px 8px; border-radius: 6px; font-size: 12px; }
+
+    /* Login */
+    .login-overlay {
+      position: fixed; inset: 0; background: var(--bg); display: flex;
+      align-items: center; justify-content: center; z-index: 100;
+    }
+    .login-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 40px; width: 380px; text-align: center;
+    }
+    .login-card h2 { margin: 16px 0 8px; font-size: 22px; }
+    .login-card p { color: var(--text2); font-size: 14px; margin-bottom: 24px; }
+    .login-card input {
+      width: 100%; padding: 12px 14px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-family: inherit; font-size: 14px;
+      margin-bottom: 12px; outline: none;
+    }
+    .login-card input:focus { border-color: var(--accent); }
+    .login-card .btn { width: 100%; padding: 12px; margin-top: 8px; }
+    .login-error { color: var(--accent); font-size: 13px; margin-bottom: 8px; }
+
+    .hidden { display: none; }
+    .chart-placeholder {
+      height: 200px; background: var(--surface2); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; color: var(--text2);
+    }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .tab {
+      padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;
+      color: var(--text2); background: transparent; border: none; font-family: inherit;
+    }
+    .tab.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .sidebar { width: 60px; padding: 20px 8px; }
+      .sidebar .nav-text, .sidebar .logo-text { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const API = 'http://localhost:3000/api';
+    let token = localStorage.getItem('admin_token') || '';
+    let currentPage = 'dashboard';
+
+    const app = document.getElementById('app');
+
+    function headers() {
+      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    }
+
+    async function api(path, opts = {}) {
+      const res = await fetch(`${API}${path}`, { headers: headers(), ...opts });
+      if (res.status === 401 || res.status === 403) { token = ''; render(); throw new Error('Unauthorized'); }
+      return res.json();
+    }
+
+    // ─── Login ───
+    function renderLogin(error = '') {
+      app.innerHTML = `
+        <div class="login-overlay">
+          <div class="login-card">
+            <div style="font-size:40px">🏪</div>
+            <h2>ShopZone Admin</h2>
+            <p>Sign in to manage your store</p>
+            ${error ? `<div class="login-error">${error}</div>` : ''}
+            <input id="email" type="email" placeholder="Email" value="admin@shopzone.com">
+            <input id="pass" type="password" placeholder="Password">
+            <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
+          </div>
+        </div>`;
+    }
+
+    async function doLogin() {
+      try {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        const data = await fetch(`${API}/auth/login`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass })
+        }).then(r => r.json());
+
+        if (data.token) {
+          token = data.token;
+          localStorage.setItem('admin_token', token);
+          render();
+        } else {
+          renderLogin(data.error || 'Login failed');
+        }
+      } catch (e) { renderLogin(e.message); }
+    }
+
+    // ─── Layout ───
+    function renderLayout(content) {
+      const navItems = [
+        { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+        { id: 'orders', icon: '📦', label: 'Orders' },
+        { id: 'products', icon: '🏷️', label: 'Products' },
+        { id: 'users', icon: '👥', label: 'Customers' },
+      ];
+
+      app.innerHTML = `
+        <div class="layout">
+          <div class="sidebar">
+            <div class="logo">🏪 <span class="logo-text">ShopZone</span></div>
+            ${navItems.map(n => `
+              <div class="nav-item ${currentPage === n.id ? 'active' : ''}" onclick="navigate('${n.id}')">
+                <span>${n.icon}</span>
+                <span class="nav-text">${n.label}</span>
+              </div>
+            `).join('')}
+            <div style="flex:1"></div>
+            <div class="nav-item" onclick="logout()">
+              <span>🚪</span>
+              <span class="nav-text">Logout</span>
+            </div>
+          </div>
+          <div class="main">${content}</div>
+        </div>`;
+    }
+
+    function navigate(page) { currentPage = page; render(); }
+    function logout() { token = ''; localStorage.removeItem('admin_token'); render(); }
+
+    // ─── Dashboard ───
+    async function renderDashboard() {
+      try {
+        const stats = await api('/admin/stats');
+        const s = stats;
+
+        renderLayout(`
+          <div class="page-title">Dashboard</div>
+          <div class="stats">
+            <div class="stat-card">
+              <div class="stat-icon revenue">💰</div>
+              <div class="stat-label">Total Revenue</div>
+              <div class="stat-value">$${parseFloat(s.revenue.total_revenue).toLocaleString('en', {minimumFractionDigits: 2})}</div>
+              <div class="stat-sub">$${parseFloat(s.revenue.monthly_revenue).toLocaleString('en', {minimumFractionDigits: 2})} this month</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon orders">📦</div>
+              <div class="stat-label">Orders</div>
+              <div class="stat-value">${s.orders.total}</div>
+              <div class="stat-sub">${s.orders.pending} pending · ${s.orders.shipped} shipped</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon users">👥</div>
+              <div class="stat-label">Customers</div>
+              <div class="stat-value">${s.users.total}</div>
+              <div class="stat-sub">${s.users.new_this_month} new this month</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon products">🏷️</div>
+              <div class="stat-label">Products</div>
+              <div class="stat-value">${s.products.total}</div>
+              <div class="stat-sub">${s.products.low_stock} low stock</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Recent Activity</div>
+            <div class="chart-placeholder">Revenue chart — integrate Chart.js or Recharts here</div>
+          </div>
+        `);
+      } catch (e) { renderLayout(`<div class="page-title">Dashboard</div><p>Failed to load: ${e.message}</p>`); }
+    }
+
+    // ─── Orders ───
+    async function renderOrders() {
+      try {
+        const data = await api('/admin/orders');
+        const orders = data.orders || [];
+
+        renderLayout(`
+          <div class="page-title">Orders <span style="font-size:14px;color:var(--text2);font-weight:400">(${data.total})</span></div>
+          <div class="panel">
+            <table>
+              <thead>
+                <tr><th>Order</th><th>Customer</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                ${orders.map(o => `
+                  <tr>
+                    <td style="font-weight:600">#${o.id.substring(0,8)}</td>
+                    <td>${o.customer_name}<br><span style="font-size:12px;color:var(--text2)">${o.customer_email}</span></td>
+                    <td>${o.created_at?.substring(0,10)}</td>
+                    <td style="font-weight:600">$${parseFloat(o.total).toFixed(2)}</td>
+                    <td><span class="badge ${o.payment_status || 'pending'}">${o.payment_status || 'pending'}</span></td>
+                    <td>
+                      <select class="status-select" onchange="updateOrderStatus('${o.id}', this.value)">
+                        ${['pending','confirmed','processing','shipped','out_for_delivery','delivered','cancelled']
+                          .map(s => `<option value="${s}" ${o.status===s?'selected':''}>${s.replace('_',' ')}</option>`).join('')}
+                      </select>
+                    </td>
+                    <td><button class="btn btn-sm btn-outline" onclick="viewOrder('${o.id}')">View</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `);
+      } catch (e) { renderLayout(`<p>Error: ${e.message}</p>`); }
+    }
+
+    async function updateOrderStatus(id, status) {
+      try {
+        await api(`/admin/orders/${id}/status`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status })
+        });
+      } catch (e) { alert(e.message); }
+    }
+
+    function viewOrder(id) { alert('Order detail view — extend as needed: ' + id); }
+
+    // ─── Products ───
+    async function renderProducts() {
+      try {
+        const products = await api('/admin/products');
+
+        renderLayout(`
+          <div class="page-title" style="display:flex;align-items:center;justify-content:space-between">
+            Products
+            <button class="btn btn-primary" onclick="alert('Add product form — extend as needed')">+ Add Product</button>
+          </div>
+          <div class="panel">
+            <table>
+              <thead>
+                <tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Rating</th><th>Featured</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                ${products.map(p => `
+                  <tr>
+                    <td style="font-weight:500">${p.name}</td>
+                    <td>${p.category_name || '—'}</td>
+                    <td>$${parseFloat(p.price).toFixed(2)}${p.discount_price ? `<br><span style="color:var(--accent);font-size:12px">$${parseFloat(p.discount_price).toFixed(2)}</span>` : ''}</td>
+                    <td><span style="color:${p.stock < 10 ? 'var(--accent)' : 'var(--success)'}">${p.stock}</span></td>
+                    <td>⭐ ${p.rating} (${p.review_count})</td>
+                    <td>${p.is_featured ? '✅' : '—'}</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline" onclick="alert('Edit product')">Edit</button>
+                      <button class="btn btn-sm btn-outline" style="color:var(--accent)" onclick="deleteProduct('${p.id}')">Delete</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `);
+      } catch (e) { renderLayout(`<p>Error: ${e.message}</p>`); }
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Delete this product?')) return;
+      try {
+        await api(`/admin/products/${id}`, { method: 'DELETE' });
+        renderProducts();
+      } catch (e) { alert(e.message); }
+    }
+
+    // ─── Users ───
+    async function renderUsers() {
+      try {
+        const users = await api('/admin/users');
+
+        renderLayout(`
+          <div class="page-title">Customers</div>
+          <div class="panel">
+            <table>
+              <thead>
+                <tr><th>Name</th><th>Email</th><th>Role</th><th>Orders</th><th>Joined</th></tr>
+              </thead>
+              <tbody>
+                ${users.map(u => `
+                  <tr>
+                    <td style="font-weight:500">${u.full_name}</td>
+                    <td>${u.email}</td>
+                    <td><span class="badge ${u.role === 'admin' ? 'confirmed' : 'delivered'}">${u.role}</span></td>
+                    <td>${u.order_count}</td>
+                    <td>${u.created_at?.substring(0,10)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `);
+      } catch (e) { renderLayout(`<p>Error: ${e.message}</p>`); }
+    }
+
+    // ─── Router ───
+    async function render() {
+      if (!token) return renderLogin();
+      switch(currentPage) {
+        case 'dashboard': return renderDashboard();
+        case 'orders': return renderOrders();
+        case 'products': return renderProducts();
+        case 'users': return renderUsers();
+        default: return renderDashboard();
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
